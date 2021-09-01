@@ -7,8 +7,8 @@ module.exports = {
     secretNodemailer : 'HHB8PLznCb4t7KYGtmmIEJ6iBOC1jljGIR',
     port : 3000,
     facebook : {
-        clientID        : "1731861773869097",
-        clientSecret    : "4b03b2adf386f7738caf698a0c0d44ba",
+        clientID        : "4254267354689280",
+        clientSecret    : "dc1b61fc7001104d92191ad0342e4379",
         callbackURL     : `http://localhost:3000/accounts/facebook/secrets`,
         profileFields   : ['id', 'displayName', 'name', 'gender', 'picture.type(large)','email', 'locale']
     },
