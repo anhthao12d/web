@@ -4,6 +4,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var passport = require('passport');
+const flash				          = require('connect-flash');
+
 var expressLayouts          = require('express-ejs-layouts');
 const mongoose              = require('mongoose');
 const validator             = require('express-validator');
@@ -56,6 +58,7 @@ app.set('layout', __path_users + 'login')
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(flash());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(expressLayouts);
 app.use(session({
@@ -64,6 +67,7 @@ app.use(session({
 	resave: false,
 	saveUninitialized: false,
 }));
+require(__path_configs +'passport')(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 // Setup router

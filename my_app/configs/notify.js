@@ -9,5 +9,5 @@ module.exports = {
     ERROR_PASSWORD_FALSE    : 'Mật khẩu không chính xác.',
     WARNING_ACTIVE__ACCOUNT : 'Kiểm tra E-Mail để kích hoạt tài khoản.',
     ERROR_ACCOUNT_ACTIVE    : 'Tài khoản chưa được kích hoạt.',
-    ERROR_GOOGLE_FACEBOOK_SINGIN_SINGUP : 'Vui lofnh thử lại.'
+    ERROR_GOOGLE_FACEBOOK_SINGIN_SINGUP : 'Thao tác không thành công. Vui lòng thử lại.'
 }

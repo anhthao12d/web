@@ -1,7 +1,7 @@
 <% 
     authenticationHelper = (link, data, err, options = null) => {
         let name = ``;
-        let email = `<div class='login-register'><i class="fas fa-envelope icon-input"></i><input  value="${data.email}" name="email" type="email" placeholder="Email" /></div>`
+        let username = `<div class='login-register'><i class="fas fa-envelope icon-input"></i><input  value="${data.username}" name="username" type="email" placeholder="Email" /></div>`
         let password = `<div class='login-register'><i class="fas fa-lock icon-input"></i><i class="fas fa-eye" id="show-hidden-password" data-show="fas fa-eye" data-hidden="fas fa-eye-slash"></i>
                         <input value="${data.password}" name="password" id='password' type="password" placeholder="Mật khẩu" /></div>`
         let social = ` <div class="social-container">
@@ -30,12 +30,12 @@
                 name = `<div class='login-register'><i class="fas fa-user icon-input"></i><input value="${data.name}" class="success-input" name="name" type="text" placeholder="Tên" /></div>`
                 }
             }
-            if(param.indexOf('email') != -1){
-                let  index = param.indexOf('email');
-                email = `<div class='login-register'><i class="fas fa-envelope icon-input"></i><input value="${data.email}" class="input errors" name="email" type="email" placeholder="Email" />
+            if(param.indexOf('username') != -1){
+                let  index = param.indexOf('username');
+                username = `<div class='login-register'><i class="fas fa-envelope icon-input"></i><input value="${data.username}" class="input errors" name="username" type="email" placeholder="Email" />
                     <span ><i class="fas fa-exclamation-triangle"></i>  ${err[index].msg}</span></div>`
             } else {
-                email = `<div class='login-register'><i class="fas fa-envelope icon-input"></i><input value="${data.email}" class="success-input" name="email" type="email" placeholder="Email" /></div>`
+                username = `<div class='login-register'><i class="fas fa-envelope icon-input"></i><input value="${data.username}" class="success-input" name="username" type="email" placeholder="Email" /></div>`
             }
 
             if(param.indexOf('password') != -1) {
@@ -47,9 +47,9 @@
                             <input value="${data.password}" id='password' class="success-input" name="password" type="password" placeholder="Mật khẩu" /></div>`
             }
         }
-        let xhtml = social + singinSpan + email + password;
+        let xhtml = social + singinSpan + username + password;
         if(options.task == 'sing-up'){
-            xhtml = social + singupSpan + name + email + password;
+            xhtml = social + singupSpan + name + username + password;
         }
         return `
                 ${xhtml}

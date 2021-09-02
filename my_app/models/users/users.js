@@ -8,15 +8,18 @@ const saltRounds    = 10;
 module.exports = {
     // find
     find : (data, options = null) => {
-        if(options.task == 'find-email'){
-            return MainModel.findOne({email : data}, {_id : 1});
+        if(options.task == 'find-username'){
+            return MainModel.findOne({username : data}, {user_id : 1});
         }
 
         if(options.task == 'check-password'){
-            return MainModel.findOne({email : data}, {_id : 1, email: 1, password : 1, status : 1});
+            return MainModel.findOne({username : data}, {user_id : 1, username: 1, password : 1, status : 1});
         }
         if(options.task == 'find-user_id'){
             return MainModel.findOne({user_id : data}, {user_id : 1});
+        }
+        if(options.task == 'find-username-login'){
+            return MainModel.findOne({username : data},{user_id : 1, name : 1, password : 1, status : 1});
         }
     },
     save : async(item, options = null) => {
@@ -26,7 +29,7 @@ module.exports = {
         };
         item.role = 'client';
         if(options.task == 'sing-up'){
-            nodemailer.sendConfirmationEmail(item.name,item.email,item.token);
+            nodemailer.sendConfirmationEmail(item.name,item.username,item.token);
             item.password = await bcrypt.hash(item.password, saltRounds);
             item.status = 'inactive';
         }
