@@ -14,8 +14,6 @@ module.exports = (passport) => {
     // Local
     passport.use(new LocalStrategy({ passReqToCallback : true}, async(req, username, password, done) => {
             await MainModel.find(username, {task : 'find-username-login'}).then(async(user) => {
-                console.log(user);
-                
                 if(user == null || user == undefined ||  user == ""){ 
                     return done(null,false,req.flash('message',{
                         msg	: NotifyConfigs.ERROR_USER_NOT_EXIST,

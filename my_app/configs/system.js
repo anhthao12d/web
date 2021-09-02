@@ -1,6 +1,6 @@
 module.exports = {
     prefixAdmin : 'adminZendvn',
-    prefixUsers : '',
+    prefixUsers : 'chat-app-demo-lv1.herokuapp.com',
     env         : 'production',
     user: "dinhthaonguyen19996@gmail.com",
     pass: "anhthao12d42013491",
