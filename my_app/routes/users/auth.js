@@ -15,23 +15,23 @@ const layoutFrontend            =  __path_users  + 'login';
 const folderView                = __path_users + 'pages/auth/';
 const pageTitle                 = 'Login Page';
 const linkSingIn                = '/' + systemConfig.prefixUsers +'/accounts/sing-in';
+var LocalStrategy               = require('passport-local').Strategy;
 const FacebookStrategy          = require('passport-facebook').Strategy
 const GoogleStrategy            = require('passport-google-oauth20').Strategy;
-const folderView2	            =  '/accounts/sing-in';
+const folderView2	            =  ('/' + systemConfig.prefixUsers + '/accounts/sing-in').replace('//','/');
 const saltRounds                = 10;
 
-router.get('/:views',(req, res, next) => {
+router.get('/:views', async(req, res, next) => {
     let views	= ParamsHelper.getParamsHelper(req.params, 'views', 'sing-in');
-    let item = {password : '', email: ''};
+    let item = {password : '', username: ''};
     if(views == 'sing-up') item.name = '';
     let err = [];
-    let notify          = []
     res.render(`${folderView}${views}`, { 
         pageTitle,
         layout   : layoutFrontend,
         item,
         err,
-        notify
+        notify : await req.flash('message')
     });
 });
 
@@ -41,15 +41,15 @@ router.post('/sing-up/', MainValidator.validatorRegister, async(req, res, next) 
     const errors 	    = validationResult(req);
     let err 		    =  errors.array();
     
-    await MainModel.find(item.email, {task : 'find-email'}).then((user) => {
-        if(user)  err.push({param : 'email', msg : NotifyConfig.ERROR_USER_EXIST})
+    await MainModel.find(item.username, {task : 'find-username'}).then((user) => {
+        if(user)  err.push({param : 'username', msg : NotifyConfig.ERROR_USER_EXIST})
     })
     
     if(err.length != 0) {
         res.render(`${folderView}sing-up`, { pageTitle, layout   : layoutFrontend, item, err});
         
     }else {
-        let data = {password : '', email: ''};
+        let data = {password : '', username: ''};
         let notify = [{msg : NotifyConfig.WARNING_ACTIVE__ACCOUNT}];
         item.user_id = randomstring.generate(32);
         item.token = await jwt.sign({ user_id: item.user_id }, systemConfig.secretNodemailer);
@@ -66,28 +66,23 @@ router.post('/sing-in',MainValidator.validatorLogin, async(req, res, next) => {
     const errors 	    = validationResult(req);
     let err 		    =  errors.array();
     const notify        = [];
-    if(err.length != 0) {
+    if(err.length != 0) {  
         res.render(`${folderView}sing-in`, { pageTitle, layout   : layoutFrontend, item, err, notify});
     } else {
-        MainModel.find(item.email, {task : 'check-password'}).then( async(user) => {
-            let err= [];
-            if(!user) {
-                err = [{param : 'email', msg : NotifyConfig.ERROR_USER_NOT_EXIST}];
-                res.render(`${folderView}sing-in`, { pageTitle, layout   : layoutFrontend, item, err, notify});
-            } else {
-                if(user.status != 'active') {
-                    let notify = [{msg : NotifyConfig.WARNING_ACTIVE__ACCOUNT}];
-                    err = [];
-                    res.render(`${folderView}sing-in`, { pageTitle, layout   : layoutFrontend, item, err, notify});
-                    
-                } else if(await  bcrypt.compare(item.password, user.password) == false ) {
-                    err = [{param : 'password', msg : NotifyConfig.ERROR_PASSWORD_FALSE}];
-                    res.render(`${folderView}sing-in`, { pageTitle, layout   : layoutFrontend, item, err, notify});
-                }
-                
+        passport.authenticate('local', async(err, user) =>{
+            if (errs || !user) {
+                return res.redirect(`${folderView2}`)
             }
-            
-        })
+            req.logIn(user, function(errs) {
+                if (errs) { 
+                    return res.redirect(`${folderView2}`);
+                }
+                let err = []
+                let data = {password : '', username: ''};
+                let notify = [{msg : 'Thanh cong'}];
+                res.render(`${folderView}sing-in`, { pageTitle, layout   : layoutFrontend, item : data, err, notify});
+            });
+        })(req, res, next)
         
     }
         
@@ -103,28 +98,68 @@ router.get('/auth/facebook', passport.authenticate('facebook', { scope : ['email
 );
 
 router.get('/facebook/secrets', async(req, res, next) => {
-    passport.authenticate('facebook', function(err, user, info) {
-        if (err) {  return next(err); }
-        if (!user) {
-            let err = []
-            let data = {password : '', email: ''};
-            let notify = [{msg : NotifyConfig.ERROR_GOOGLE_FACEBOOK_SINGIN_SINGUP}];
-            res.render(`${folderView}sing-in`, { pageTitle, layout   : layoutFrontend, item : data, err, notify});
-        
+    
+    passport.authenticate('facebook', function(errs, user, info) {
+        if (errs || !user) {
+            return res.redirect(`${folderView2}`)
         }
-        req.logIn(user, function(err) {
-            if (err) { return next(err); }
-            else { 
-                let err = []
-                let data = {password : '', email: ''};
-                let notify = [{msg : 'Thanh cong'}];
-                res.render(`${folderView}sing-in`, { pageTitle, layout   : layoutFrontend, item : data, err, notify});
+        req.logIn(user, function(errs) {
+            if (errs) { 
+                return res.redirect(`${folderView2}`);
             }
-        
+            let err = []
+            let data = {password : '', username: ''};
+            let notify = [{msg : 'Thanh cong'}];
+            res.render(`${folderView}sing-in`, { pageTitle, layout   : layoutFrontend, item : data, err, notify});
         });
     })(req, res, next)
 });
 
+
+// Google
+router.get('/auth/google',
+    passport.authenticate('google', { scope: ['profile','email'] })
+);
+
+router.get('/google/callback', async(req, res, next) => {
+    passport.authenticate('google', function(errs, user, info) {
+        if (errs || !user) {
+            return res.redirect(`${folderView2}`)
+        }
+        req.logIn(user, function(errs) {
+            if (errs) { 
+                return res.redirect(`${folderView2}`);
+            }
+            let err = []
+            let data = {password : '', username: ''};
+            let notify = [{msg : 'Thanh cong'}];
+            res.render(`${folderView}sing-in`, { pageTitle, layout   : layoutFrontend, item : data, err, notify});
+        });
+    })(req, res, next);
+}
+);
+// Local
+passport.use(new LocalStrategy(
+    (username, password, done) => {
+        UsersModel.findOne({username : username, status : 'active'},{_id : 1, name : 1, password : 1}).then(async(user) => {
+            if(user == null || user == undefined ||  user == ""){ 
+                return done(null,false,req.flash('message',{
+                    msg	: 'Tai khoan chua duoc dang ki.',
+                }))
+            }else {
+                if(await bcrypt.compare(password, user.password) == false) {
+                    return done(null,false, req.flash('message',{
+                        msg	: NotifyConfigs.ERROR_PASSWORD_FALSE,
+                    }));
+                }else {
+                    return done(null,user);
+                }
+            }
+            
+        });
+    }
+));
+  // Facebok
 passport.use(new FacebookStrategy(systemConfig.facebook,  async(accessToken, refreshToken, profile, done) => {
     await MainModel.find(profile._json.id, {task : 'find-user_id'}).then((user) => {
         if(user) {
@@ -133,7 +168,7 @@ passport.use(new FacebookStrategy(systemConfig.facebook,  async(accessToken, ref
             user = profile._json.id;
             let item = {
                 name : (profile._json.name != '') ? profile._json.give_name : 'user',
-                email : (profile._json.email != '') ? profile._json.email : '',
+                username : (profile._json.email != '') ? profile._json.email : '',
                 user_id : profile._json.id,
                 passport : bcrypt.hash(randomstring.generate(10), saltRounds),
             }
@@ -145,35 +180,7 @@ passport.use(new FacebookStrategy(systemConfig.facebook,  async(accessToken, ref
     })
 }
 ));
-
 // Google
-router.get('/auth/google',
-    passport.authenticate('google', { scope: ['profile','email'] })
-);
-
-router.get('/google/callback', async(req, res, next) => {
-    passport.authenticate('google', function(err, user, info) {
-        if (err) {  return next(err); }
-        if (!user) {
-            let err = []
-            let data = {password : '', email: ''};
-            let notify = [{msg : NotifyConfig.ERROR_GOOGLE_FACEBOOK_SINGIN_SINGUP}];
-            res.render(`${folderView}sing-in`, { pageTitle, layout   : layoutFrontend, item : data, err, notify});
-           
-        }
-        req.logIn(user, function(err) {
-            if (err) { return next(err); }
-            else { 
-                let err = []
-                let data = {password : '', email: ''};
-                let notify = [{msg : 'Thanh cong'}];
-                res.render(`${folderView}sing-in`, { pageTitle, layout   : layoutFrontend, item : data, err, notify});
-            }
-           
-        });
-    })(req, res, next);
-}
-);
 passport.use(new GoogleStrategy(systemConfig.google,  async(accessToken, refreshToken, profile, cb) =>{
     MainModel.find(profile._json.sub, {task : 'find-user_id'}).then((user) => {
         if(user) {
@@ -182,7 +189,7 @@ passport.use(new GoogleStrategy(systemConfig.google,  async(accessToken, refresh
             user = profile._json.sub;
             let item = {
                 name : (profile._json.given_name != '') ? profile._json.give_name : 'user',
-                email : profile._json.email,
+                username : profile._json.email,
                 user_id : profile._json.sub,
                 passport : bcrypt.hash(randomstring.generate(10), saltRounds),
             }
